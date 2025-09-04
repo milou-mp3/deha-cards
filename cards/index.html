@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Jeu de Cartes</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 20px;
+      background: #fff;
+      font-family: sans-serif;
+    }
+
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 20px;
+      max-width: 1600px;
+      margin: 0 auto;
+    }
+
+    .card {
+      overflow: hidden;
+      border-radius: 8px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+      cursor: pointer;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .card img {
+      width: 100%;
+      height: auto;
+      display: block;
+      transition: transform 0.3s ease;
+    }
+
+    .card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 6px 15px rgba(0,0,0,0.3);
+    }
+
+    .card:hover img {
+      transform: scale(1.05);
+    }
+
+    /* Lightbox */
+    .lightbox {
+      display: none;
+      position: fixed;
+      z-index: 1000;
+      inset: 0;
+      background: rgba(0,0,0,0.9);
+      justify-content: center;
+      align-items: center;
+    }
+
+    .lightbox img {
+      max-width: 90%;
+      max-height: 90%;
+    }
+
+    .lightbox:target {
+      display: flex;
+    }
+
+    .close {
+      position: absolute;
+      top: 20px;
+      right: 30px;
+      font-size: 2rem;
+      color: #fff;
+      text-decoration: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="cards" id="cards"></div>
+  <div id="lightboxes"></div>
+
+  <script>
+    // Liste de toutes tes cartes
+    const images = [
+      "AP.png",
+      "2P.png",
+      "3P.png",
+      "4P.png",
+      "5P.png",
+      "6P.png",
+      "10P.png",
+      "VP.png",
+      "DP.png",
+      "RP.png",
+      "AT.png",
+      "2T.png",
+      "3T.png",
+      "4T.png",
+      "6T.png",
+      "7T.png",
+      "9T.png",
+      "10T.png",
+      "DT.png",
+      "AC.png",
+      "2C.png",
+      "3C.png",
+      "4C.png",
+      "5C.png",
+      "6C.png",
+      "7C.png",
+      "8C.png",
+      "9C.png",
+      "10C.png",
+      "DC.png",
+      "RC.png",
+      "ACo.png",
+      "2Co.png",
+      "3Co.png",
+      "4Co.png",
+      "5Co.png",
+      "6Co.png",
+      "7Co.png",
+      "8Co.png",
+      "10Co.png",
+      "DCo.png",
+      // tu ajoutes autant que tu veux
+    ];
+
+    const cardsContainer = document.getElementById("cards");
+    const lightboxContainer = document.getElementById("lightboxes");
+
+    images.forEach((img, index) => {
+      const id = "img" + (index + 1);
+
+      // Carte miniature
+      cardsContainer.innerHTML += `
+        <a href="#${id}" class="card">
+          <img src="${img}" alt="Carte ${index+1}">
+        </a>
+      `;
+
+      // Lightbox correspondante
+      lightboxContainer.innerHTML += `
+        <div id="${id}" class="lightbox">
+          <a href="#" class="close">&times;</a>
+          <img src="${img}" alt="Carte ${index+1}">
+        </div>
+      `;
+    });
+  </script>
+</body>
+</html>
