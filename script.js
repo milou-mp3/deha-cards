@@ -37,8 +37,7 @@ function initSlider(files) {
 
   let currentIndex = 0;
   const cardWidth = 300;
-  let startX = 0, startY = 0, startTime = 0;
-  let isDragging = false, draggingStarted = false, lastTranslate = 0;
+  let startX = 0, startTime = 0, isDragging = false, lastTranslate = 0;
 
   // ---------------- Couleur dominante hors blanc ----------------
   function getDominantColor(img) {
@@ -55,7 +54,7 @@ function initSlider(files) {
     for (let i = 0; i < data.length; i += 4) {
       const r = data[i], g = data[i+1], b = data[i+2], a = data[i+3];
       if (a < 128) continue;
-      if (r>200 && g>200 && b>200) continue;
+      if (r > 200 && g > 200 && b > 200) continue; // ignore blanc sale
       const key = `${Math.floor(r/24)*24},${Math.floor(g/24)*24},${Math.floor(b/24)*24}`;
       freq.set(key, (freq.get(key)||0)+1);
     }
@@ -87,51 +86,43 @@ function initSlider(files) {
     else img.onload = () => updateBackground(img);
   }
 
-  // ---------------- Drag amélioré pour mobile ----------------
-  slides.addEventListener("pointerdown", e => {
-    startX = e.pageX;
-    startY = e.pageY;
-    startTime = Date.now();
+  // ---------------- Drag amélioré ----------------
+  function onDragStart(x) {
     isDragging = true;
-    draggingStarted = false;
+    startX = x;
+    startTime = Date.now();
     slides.style.transition = "none";
-    slides.setPointerCapture(e.pointerId);
-  });
+  }
 
-  slides.addEventListener("pointermove", e => {
+  function onDragMove(x) {
     if (!isDragging) return;
-    const dx = e.pageX - startX;
-    const dy = e.pageY - startY;
+    slides.style.transform = `translateX(${lastTranslate + (x - startX)}px)`;
+  }
 
-    if (!draggingStarted && Math.abs(dx) > Math.abs(dy)) {
-      draggingStarted = true; // on commence le drag horizontal
-    }
-
-    if (draggingStarted) {
-      e.preventDefault(); // bloque le scroll vertical
-      slides.style.transform = `translateX(${lastTranslate + dx}px)`;
-    }
-  });
-
-  slides.addEventListener("pointerup", e => {
+  function onDragEnd(x) {
     if (!isDragging) return;
     isDragging = false;
-    slides.releasePointerCapture(e.pointerId);
-
-    if (!draggingStarted) return; // c'était juste un tap
-
-    const dx = e.pageX - startX;
-    const dt = Date.now() - startTime;
-    const velocity = dx / dt;
+    const dx = x - startX, dt = Date.now() - startTime, velocity = dx / dt;
 
     if (dx > 80 || velocity > 0.5) showSlide(currentIndex - 1);
     else if (dx < -80 || velocity < -0.5) showSlide(currentIndex + 1);
-    else showSlide(currentIndex);
-  });
+    else {
+      slides.style.transition = "transform 0.2s cubic-bezier(0.25, 0.8, 0.25, 1)";
+      slides.style.transform = `translateX(${-currentIndex * cardWidth}px)`;
+      lastTranslate = -currentIndex * cardWidth;
+    }
+  }
 
-  slides.addEventListener("pointercancel", e => {
-    if (isDragging) { isDragging = false; showSlide(currentIndex); }
-  });
+  // ---- events souris ----
+  gallery.addEventListener("mousedown", e => onDragStart(e.pageX));
+  gallery.addEventListener("mousemove", e => onDragMove(e.pageX));
+  gallery.addEventListener("mouseup", e => onDragEnd(e.pageX));
+  gallery.addEventListener("mouseleave", e => { if (isDragging) onDragEnd(e.pageX); });
+
+  // ---- events tactiles ----
+  gallery.addEventListener("touchstart", e => onDragStart(e.touches[0].pageX), {passive: true});
+  gallery.addEventListener("touchmove", e => onDragMove(e.touches[0].pageX), {passive: true});
+  gallery.addEventListener("touchend", e => onDragEnd(e.changedTouches[0].pageX), {passive: true});
 
   // ---- navigation clavier ----
   document.addEventListener("keydown", e => {
