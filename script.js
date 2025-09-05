@@ -1,135 +1,150 @@
-const gallery = document.getElementById("gallery");
+let cards = [];
+let currentIndex = 0;
 
-// Choisis ton mode ici : "slide" ou "grid"
-const MODE = "slide";
-
-// Charger les cartes depuis JSON
-fetch("cards.json")
+fetch("cards/cards.json")
   .then(res => res.json())
-  .then(files => {
-    if (MODE === "slide") initSlider(files);
-    if (MODE === "grid") initGrid(files);
-  });
+  .then(data => {
+    cards = data;
+    if (!cards.length) return;
+    showCard(currentIndex);
+  })
+  .catch(err => console.error("Impossible de charger cards.json :", err));
 
-/* ---------------- GRID ---------------- */
-function initGrid(files) {
-  gallery.className = "mode-grid";
-  files.forEach(file => {
-    const img = document.createElement("img");
-    img.src = "cards/" + file;
-    gallery.appendChild(img);
-  });
+function showCard(index) {
+  const card = cards[index];
+  const container = document.getElementById("card-container");
+  container.innerHTML = "";
+
+  const img = document.createElement("img");
+  img.src = "cards/" + card.file;
+  img.alt = card.artist;
+
+  const name = document.createElement("div");
+  name.textContent = card.artist;
+
+  container.appendChild(img);
+  container.appendChild(name);
+
+  // Mettre le fond sur la couleur dominante
+  if (img.complete) setBackground(img, name);
+  else img.onload = () => setBackground(img, name);
+
+  resizeCard();
 }
 
-/* ---------------- SLIDER ---------------- */
-function initSlider(files) {
-  gallery.className = "mode-slide";
+function setBackground(img, textDiv) {
+  const w = 40, h = 40;
+  const canvas = document.createElement("canvas");
+  canvas.width = w;
+  canvas.height = h;
+  const ctx = canvas.getContext("2d");
+  ctx.drawImage(img, 0, 0, w, h);
 
-  const slides = document.createElement("div");
-  slides.className = "slides";
-  gallery.appendChild(slides);
+  const data = ctx.getImageData(0, 0, w, h).data;
+  const freq = new Map();
 
-  files.forEach(file => {
-    const img = document.createElement("img");
-    img.src = "cards/" + file;
-    slides.appendChild(img);
-  });
-
-  let currentIndex = 0;
-  const cardWidth = 300;
-  let startX = 0, startTime = 0, isDragging = false, lastTranslate = 0;
-
-  // ---------------- Couleur dominante hors blanc ----------------
-  function getDominantColor(img) {
-    const w = 40, h = 40;
-    const canvas = document.createElement("canvas");
-    canvas.width = w; canvas.height = h;
-    const ctx = canvas.getContext("2d");
-    ctx.drawImage(img, 0, 0, w, h);
-    let data;
-    try { data = ctx.getImageData(0, 0, w, h).data; }
-    catch(e) { console.warn("CORS pb"); return null; }
-
-    const freq = new Map();
-    for (let i = 0; i < data.length; i += 4) {
-      const r = data[i], g = data[i+1], b = data[i+2], a = data[i+3];
-      if (a < 128) continue;
-      if (r > 200 && g > 200 && b > 200) continue; // ignore blanc sale
-      const key = `${Math.floor(r/24)*24},${Math.floor(g/24)*24},${Math.floor(b/24)*24}`;
-      freq.set(key, (freq.get(key)||0)+1);
-    }
-
-    if (freq.size === 0) return null;
-    let bestColor = null, bestCount = 0;
-    for (const [col, count] of freq) {
-      if (count > bestCount) { bestCount = count; bestColor = col; }
-    }
-    return `rgb(${bestColor})`;
+  for (let i = 0; i < data.length; i += 4) {
+    const r = data[i], g = data[i+1], b = data[i+2], a = data[i+3];
+    if (a < 128) continue;
+    if (r>200 && g>200 && b>200) continue; // ignore blanc sale
+    const key = `${Math.floor(r/24)*24},${Math.floor(g/24)*24},${Math.floor(b/24)*24}`;
+    freq.set(key, (freq.get(key)||0)+1);
   }
 
-  function updateBackground(img) {
-    const color = getDominantColor(img);
-    if (color) document.body.style.background = `linear-gradient(180deg, ${color}, #ffffff)`;
-    else document.body.style.background = "#f0f0f0";
+  if (freq.size === 0) return;
+
+  let bestColor = null, bestCount = 0;
+  for (const [col,count] of freq) {
+    if (count > bestCount){ bestCount=count; bestColor=col; }
   }
 
-  // ---------------- Afficher la slide ----------------
-  function showSlide(i, smooth = true) {
-    currentIndex = (i + files.length) % files.length;
-    slides.style.transition = smooth ? "transform 0.3s ease" : "none";
-    const targetX = -currentIndex * cardWidth;
-    slides.style.transform = `translateX(${targetX}px)`;
-    lastTranslate = targetX;
+  document.body.style.background = `rgb(${bestColor})`;
 
-    const img = slides.children[currentIndex];
-    if (img.complete) updateBackground(img);
-    else img.onload = () => updateBackground(img);
+  if(textDiv) {
+    textDiv.style.color = bestColor;
   }
-
-  // ---------------- Drag amélioré ----------------
-  function onDragStart(x) {
-    isDragging = true;
-    startX = x;
-    startTime = Date.now();
-    slides.style.transition = "none";
-  }
-
-  function onDragMove(x) {
-    if (!isDragging) return;
-    slides.style.transform = `translateX(${lastTranslate + (x - startX)}px)`;
-  }
-
-  function onDragEnd(x) {
-    if (!isDragging) return;
-    isDragging = false;
-    const dx = x - startX, dt = Date.now() - startTime, velocity = dx / dt;
-
-    if (dx > 80 || velocity > 0.5) showSlide(currentIndex - 1);
-    else if (dx < -80 || velocity < -0.5) showSlide(currentIndex + 1);
-    else {
-      slides.style.transition = "transform 0.2s cubic-bezier(0.25, 0.8, 0.25, 1)";
-      slides.style.transform = `translateX(${-currentIndex * cardWidth}px)`;
-      lastTranslate = -currentIndex * cardWidth;
-    }
-  }
-
-  // ---- events souris ----
-  gallery.addEventListener("mousedown", e => onDragStart(e.pageX));
-  gallery.addEventListener("mousemove", e => onDragMove(e.pageX));
-  gallery.addEventListener("mouseup", e => onDragEnd(e.pageX));
-  gallery.addEventListener("mouseleave", e => { if (isDragging) onDragEnd(e.pageX); });
-
-  // ---- events tactiles ----
-  gallery.addEventListener("touchstart", e => onDragStart(e.touches[0].pageX), {passive: true});
-  gallery.addEventListener("touchmove", e => onDragMove(e.touches[0].pageX), {passive: true});
-  gallery.addEventListener("touchend", e => onDragEnd(e.changedTouches[0].pageX), {passive: true});
-
-  // ---- navigation clavier ----
-  document.addEventListener("keydown", e => {
-    if (e.key === "ArrowLeft") showSlide(currentIndex - 1);
-    else if (e.key === "ArrowRight") showSlide(currentIndex + 1);
-  });
-
-  // première carte
-  showSlide(0);
 }
+
+// texte lisible selon luminosité
+function getTextColor(rgbString) {
+  const [r, g, b] = rgbString.split(",").map(Number);
+  const brightness = (r*299 + g*587 + b*114) / 1000;
+  return brightness > 150 ? "#000000" : "#ffffff";
+}
+
+// ---- Navigation clavier ----
+document.addEventListener("keydown", e => {
+  if (!cards.length) return;
+  if(e.key === "ArrowRight") {
+    currentIndex = (currentIndex + 1) % cards.length;
+    showCard(currentIndex);
+  } else if(e.key === "ArrowLeft") {
+    currentIndex = (currentIndex - 1 + cards.length) % cards.length;
+    showCard(currentIndex);
+  }
+});
+
+// ---- Swipe tactile ----
+let startX = 0;
+let startY = 0;
+let isDragging = false;
+const container = document.getElementById("card-container");
+
+container.addEventListener("touchstart", e => {
+  startX = e.touches[0].pageX;
+  startY = e.touches[0].pageY;
+  isDragging = true;
+}, {passive: true});
+
+container.addEventListener("touchmove", e => {
+  if (!isDragging) return;
+  const dx = e.touches[0].pageX - startX;
+  const dy = e.touches[0].pageY - startY;
+
+  if (Math.abs(dx) > Math.abs(dy)) {
+    e.preventDefault(); // bloque le scroll horizontal
+  }
+}, {passive: false});
+
+container.addEventListener("touchend", e => {
+  if (!isDragging) return;
+  isDragging = false;
+
+  const dx = e.changedTouches[0].pageX - startX;
+
+  if (dx > 50) {
+    currentIndex = (currentIndex - 1 + cards.length) % cards.length;
+    showCard(currentIndex);
+  } else if (dx < -50) {
+    currentIndex = (currentIndex + 1) % cards.length;
+    showCard(currentIndex);
+  }
+});
+
+container.addEventListener("click", e => {
+  const rect = container.getBoundingClientRect();
+  const clickX = e.clientX - rect.left; // position du clic dans le container
+  const width = rect.width;
+
+  if (clickX < width / 2) {
+    // clic côté gauche → carte précédente
+    currentIndex = (currentIndex - 1 + cards.length) % cards.length;
+  } else {
+    // clic côté droit → carte suivante
+    currentIndex = (currentIndex + 1) % cards.length;
+  }
+
+  showCard(currentIndex);
+});
+
+function resizeCard() {
+  const img = document.querySelector("#card-container img");
+  if (!img) return;
+
+  const h = window.innerHeight * 0.90;
+  img.style.maxHeight = h + "px";
+}
+
+// appliquer au chargement et au resize
+window.addEventListener("load", resizeCard);
+window.addEventListener("resize", resizeCard);

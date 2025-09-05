@@ -24,6 +24,27 @@ body {
   cursor: grab;
 }
 
+.card-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin: 8px;
+}
+
+.card-wrapper img {
+  width: 300px; /* adapte à ta taille */
+  border-radius: 6px;
+}
+
+.caption {
+  margin-top: 4px;
+  font-size: 20px;
+  font-family: sans-serif;
+  color: #fff;
+  text-align: center;
+}
+
+
 .mode-slide:active { cursor: grabbing; }
 .mode-slide .slides { display: flex; transition: transform 0.3s ease; }
 .mode-slide img { width: 300px; height: 450px; flex-shrink: 0; }
@@ -43,4 +64,16 @@ body {
   height: auto;
   border-radius: 8px;
   box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  width: 100vw;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start; /* alignement en haut pour utiliser toute la hauteur */
+  background: #f0f0f0;
 }

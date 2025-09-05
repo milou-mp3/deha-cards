@@ -1,4 +1,3 @@
-// Exporte une fonction qui retourne la couleur dominante (hybride)
 export function getDominantColor(img) {
   const w = 40, h = 40;
   const canvas = document.createElement("canvas");
@@ -24,13 +23,11 @@ export function getDominantColor(img) {
 
   if(freq.size===0) return "#f0f0f0";
 
-  // Couleur la plus fréquente
   let best = null;
   for(const v of freq.values()){
     if(!best || v.count>best.count) best=v;
   }
 
-  // Vérifier saturation
   const {s} = rgbToHsv(best.r,best.g,best.b);
   if(s<0.3){
     let maxSat = -1;
@@ -46,7 +43,6 @@ export function getDominantColor(img) {
   return `rgb(${best.r},${best.g},${best.b})`;
 }
 
-// utilitaire RGB -> HSV
 function rgbToHsv(r,g,b){
   r/=255; g/=255; b/=255;
   const max=Math.max(r,g,b), min=Math.min(r,g,b);
@@ -62,4 +58,10 @@ function rgbToHsv(r,g,b){
     h/=6;
   }
   return {h,s,v};
+}
+
+function getTextColor(rgbString) {
+  const [r, g, b] = rgbString.split(",").map(Number);
+  const brightness = (r*299 + g*587 + b*114) / 1000;
+  return brightness > 150 ? "#000000" : "#ffffff";
 }
