@@ -67,13 +67,34 @@ body {
 }
 
 html, body {
-  margin: 0;
-  padding: 0;
-  overflow: hidden;
-  width: 100vw;
-  height: 100%;
-  display: flex;
-  justify-content: center;
-  align-items: flex-start; /* alignement en haut pour utiliser toute la hauteur */
-  background: #f0f0f0;
+	margin: 0;
+  	padding: 0;
+  	width: 100vw;
+  	height: 100vh; 
+  	display: flex;
+  	justify-content: center;
+  	align-items: center;
+  	overflow: hidden;
+  	background: #f0f0f0;
+}
+
+#card-container {
+  	display: flex;
+  	flex-direction: column;
+  	align-items: center;
+  	justify-content: center;
+}
+
+#card-container img {
+  	max-width: 90vw;
+  	object-fit: contain;
+}
+
+#card-container div {
+  	margin-top: 10px;
+  	font-family: sans-serif;
+  	font-size: 1.2em;
+  	font-weight: bold;
+  	text-align: center;
+  	transition: color 0.3s ease;
 }
