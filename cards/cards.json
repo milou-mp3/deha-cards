@@ -16,6 +16,7 @@
   { "file": "4T.png",  "artist": "bubu" },
   { "file": "6T.png",  "artist": "huhu" },
   { "file": "7T.png",  "artist": "milou" },
+  { "file": "8T.png",  "artist": "milou" },
   { "file": "9T.png",  "artist": "nokuta" },
   { "file": "10T.png", "artist": "huhu" },
   { "file": "DT.png",  "artist": "milou" },
@@ -30,6 +31,7 @@
   { "file": "8C.png",  "artist": "nokuta" },
   { "file": "9C.png",  "artist": "milou" },
   { "file": "10C.png", "artist": "milou" },
+  { "file": "VC.png",  "artist": "milou" },
   { "file": "DC.png",  "artist": "huhu" },
   { "file": "RC.png",  "artist": "nokuta" },
 
