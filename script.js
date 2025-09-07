@@ -9,7 +9,6 @@ fetch("cards/cards.json")
 	if (isNaN(savedIndex)) {
   		savedIndex = 0;
 	}
-
 	showCard(savedIndex);
 
   })
