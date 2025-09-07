@@ -5,13 +5,22 @@ fetch("cards/cards.json")
   .then(res => res.json())
   .then(data => {
     cards = data;
-    if (!cards.length) return;
-    showCard(currentIndex);
+    let savedIndex = parseInt(localStorage.getItem("lastCardIndex"), 10);
+	if (isNaN(savedIndex)) {
+  		savedIndex = 0;
+	}
+
+	showCard(savedIndex);
+
   })
   .catch(err => console.error("Impossible de charger cards.json :", err));
 
 function showCard(index) {
-  const card = cards[index];
+  currentIndex = (index + cards.length) % cards.length;
+
+  localStorage.setItem("lastCardIndex", currentIndex);
+
+  const card = cards[currentIndex];
   const container = document.getElementById("card-container");
   container.innerHTML = "";
 
@@ -74,14 +83,8 @@ function getTextColor(rgbString) {
 
 // ---- Navigation clavier ----
 document.addEventListener("keydown", e => {
-  if (!cards.length) return;
-  if(e.key === "ArrowRight") {
-    currentIndex = (currentIndex + 1) % cards.length;
-    showCard(currentIndex);
-  } else if(e.key === "ArrowLeft") {
-    currentIndex = (currentIndex - 1 + cards.length) % cards.length;
-    showCard(currentIndex);
-  }
+  if (e.key === "ArrowLeft") showCard(currentIndex - 1);
+  if (e.key === "ArrowRight") showCard(currentIndex + 1);
 });
 
 // ---- Swipe tactile ----
