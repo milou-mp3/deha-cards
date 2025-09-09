@@ -188,10 +188,6 @@ document.addEventListener("DOMContentLoaded", () => {
     img.style.transform = "";
   });
 
-  // empêche la sélection lors d'un tap ou clic prolongé
-img.addEventListener("mousedown", e => e.preventDefault());
-img.addEventListener("touchstart", e => e.preventDefault());
-
 
   // empêche sélection texte au drag (optionnel)
   container.addEventListener("dragstart", e => e.preventDefault());
